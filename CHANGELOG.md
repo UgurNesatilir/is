@@ -68,6 +68,12 @@ per-file diff commands.
 
 ### Fixed
 
+- **Portal CLIs decode `&amp;` last, so an escaped entity stays text** (`.agents/skills/{freehire,jobindex,jobnet,linkedin}-search/cli/src/`) -
+  the entity decoders replaced `&amp;` with `&` first, so the output was then re-read as the start of another
+  entity: a title carrying the literal text `&lt;` (sent as `&amp;lt;`) came out as `<`, and likewise for
+  `&amp;gt;`, `&amp;quot;`, `&amp;#39;` and numeric references. `&amp;` is now the last replacement in each
+  decoder; every other entity decodes as before.
+
 - **`convert_salary_excel.py` converts the IDA workbook again** (#615, `tools/convert_salary_excel.py`,
   `tests/test_convert_salary_excel.py`) - the workbook heads its company column "Firmanavn og by",
   and since #75 made header matching whole-token only, "firma" no longer matched inside "Firmanavn",
