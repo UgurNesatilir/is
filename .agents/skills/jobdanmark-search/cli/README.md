@@ -38,10 +38,8 @@ All errors are written to **stderr** as `{ "error": "...", "code": "..." }` and 
 |-------|--------|---------|
 | `fuldtid` | Fuldtid | Full-time |
 | `deltid` | Deltid | Part-time |
-| `fleksjob` | Fleksjob | Flex job |
-| `elev` | Elev | Apprentice |
-| `studiejob` | Studiejob | Student job |
-| `praktik` | Praktik | Internship |
+
+These are the only values the API's `jobTypes` filter matches: every live ad is tagged `fuldtid` or `deltid`. The API accepts any other string and returns no jobs, so the CLI rejects it (`BAD_ARG`, exit 1). Search `--text` for student jobs, apprenticeships (`elev`), internships or fleksjob.
 
 ---
 
@@ -80,7 +78,7 @@ bun run src/cli.ts search [flags]
 | `--municipality` | string | — | Municipality name, e.g. `Odense`, `København` |
 | `--zip` | string | — | Zip code, e.g. `5000` |
 | `--region` | string | — | Region name |
-| `--job-type` | string | — | Comma-separated job types: `fuldtid,deltid,fleksjob,elev,studiejob,praktik` |
+| `--job-type` | string | — | Comma-separated job types: `fuldtid`, `deltid` |
 | `--page` | number | `1` | Page number (30 items per page, server-enforced) |
 | `--limit` | number | — | Cap total results returned by CLI (client-side) |
 | `--format` | string | `json` | Output format: `json`, `table`, `plain` |

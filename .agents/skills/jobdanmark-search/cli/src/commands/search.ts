@@ -34,6 +34,23 @@ interface ApiSearchResponse {
   totalPages: number
 }
 
+// The only values the search API's jobTypes filter matches: every live ad is
+// tagged fuldtid or deltid. Any other string is accepted by the API and
+// matches nothing, so a typo or a retired type (fleksjob, elev, studiejob,
+// praktik) returned an empty, successful search.
+export const JOB_TYPES = ["fuldtid", "deltid"] as const
+
+export function parseJobTypes(value: string | undefined): string[] {
+  const types = value ? value.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean) : []
+  const unknown = types.filter((t) => !(JOB_TYPES as readonly string[]).includes(t))
+  if (unknown.length > 0) {
+    throw new Error(
+      `unsupported --job-type ${unknown.join(", ")}: Jobdanmark only filters by ${JOB_TYPES.join(", ")}; use --text for other kinds of job`,
+    )
+  }
+  return types
+}
+
 export function toContractDate(value: string | null): string | null {
   const match = value?.match(/^(\d{2})-(\d{2})-(\d{4})$/)
   return match ? `${match[3]}-${match[2]}-${match[1]}` : (value ?? null)
@@ -108,7 +125,7 @@ export const search = defineCommand({
       description: "Region name",
     }),
     "job-type": option(z.string().optional(), {
-      description: "Comma-separated job types: fuldtid,deltid,fleksjob,elev,studiejob,praktik",
+      description: "Comma-separated job types: fuldtid,deltid",
     }),
     page: option(z.coerce.number().int().min(1).default(1), {
       description: "Page number (30 items per page, server-enforced)",
@@ -144,9 +161,13 @@ export const search = defineCommand({
       filters.push({ type: "region", value: flags.region, displayText: flags.region })
     }
 
-    const jobTypes = flags["job-type"]
-      ? flags["job-type"].split(",").map((t) => t.trim()).filter(Boolean)
-      : []
+    let jobTypes: string[]
+    try {
+      jobTypes = parseJobTypes(flags["job-type"])
+    } catch (err) {
+      writeError(err instanceof Error ? err.message : String(err), "BAD_ARG")
+      process.exit(1)
+    }
 
     const body = {
       jobTypes,
