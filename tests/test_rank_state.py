@@ -740,6 +740,23 @@ class Unreachable(RankStateCase):
         self.assertIn("unknown status 'unreachble'", out["errors"][0]["error"])
         self.assertEqual(self.read_state()["a"]["status"], "new", "a rejected result never half-writes an entry")
 
+    def test_non_object_entry_is_reported_not_a_traceback(self):
+        self.write_state({"a": entry(), "b": "oops"})
+        results = self.results([])
+        for args in (
+            ("candidates", "--tracker", str(self.tmp / "none.csv")),
+            ("sweep",),
+            ("apply", "--results", results),
+        ):
+            with self.subTest(command=args[0]):
+                proc = subprocess.run(
+                    [sys.executable, str(TOOL), *args, "--state", str(self.state), "--today", TODAY],
+                    capture_output=True, text=True, encoding="utf-8",
+                )
+                self.assertEqual(proc.returncode, 1)
+                self.assertIn("entry is not an object: b", proc.stderr)
+                self.assertNotIn("Traceback", proc.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
