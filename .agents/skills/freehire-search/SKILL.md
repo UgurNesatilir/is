@@ -101,7 +101,7 @@ field and drops the bodies entirely (fetch a shortlisted job's body with
 `detail`, or re-run the search without the flag).
 
 Facet filters (values come from freehire's controlled vocabularies; comma-separate for OR within a facet):
-- `--region <codes>` — macro-region, e.g. `global`, `eu`, `us`, `apac`, `latam`, `cis`. `--region eu,us`. Use `none` to match jobs whose region could **not** be resolved (see "Partial data" below).
+- `--region <codes>` — macro-region: `global`, `eu`, `north_america`, `latam`, `apac`, `mena`, `africa`, `cis`. `--region eu,north_america`. For a single country use `--country` instead — `us` is a country code, not a region, and `--region us` matches only a small, stray subset of US postings. Use `none` to match jobs whose region could **not** be resolved (see "Partial data" below).
 - `--country <codes>` — ISO-3166 alpha-2, e.g. `--country DE,GB`
 - `--city <names>` — city name(s), e.g. `--city Berlin`
 - `--seniority <levels>` — `junior`, `middle`, `senior`, `staff`, `principal`, `lead`, …
@@ -168,6 +168,11 @@ result carries at least `id` (the freehire slug), `title`, `company`, `location`
 `date`, `url`, and `description` (missing values are `null`). `table` and `plain`
 omit the description — it would swamp a scannable list. All errors are written to
 **stderr** as `{ "error": "...", "code": "..." }` and the process exits with code `1`.
+
+One diagnostic is not an error: a `--region` (or `--facet regions=`) value outside the
+documented vocabulary - `us` is a country code, not a region - prints
+`{ "warning": "...", "code": "REGION_VALUE_UNKNOWN" }` on **stderr** after the results,
+and the process still exits `0` with stdout a valid JSON document.
 
 ## Partial data
 
