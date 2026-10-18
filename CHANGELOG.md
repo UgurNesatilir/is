@@ -498,6 +498,21 @@ per-file diff commands.
 
 - **Salary lookups preserve Unicode company identities and match ASCII-typed accented names such as `Nestle` to `Nestlé`, while retaining Nordic spelling variants** (#570).
 
+### Security
+
+- **CI no longer leaves the job token in `.git/config` or expands a PR-controlled name into a
+  script** (`.github/workflows/ci.yml`, `.github/workflows/upstream-watch.yml`,
+  `tests/test_workflow_hardening.py`) - all nine `actions/checkout` steps persisted the job token
+  for every later step, including `bun install` and `bun test` in CLI code a pull request brings
+  (zizmor `artipacked`); each now sets `persist-credentials: false`, which nothing needed. The
+  `cli-checks` test step expanded `${{ matrix.tool }}` - a directory name `discover-clis` reads
+  from the PR's tree - straight into its shell script (zizmor `template-injection`); it now
+  arrives through `env`. `upstream-watch.yml` grants `issues: write` to its one job instead of
+  the whole workflow, so a job added later starts read-only. The container images stay on tags:
+  the `texlive/texlive:latest` leg exists to track current TeX Live, and a digest pin without
+  automated updates would freeze both legs. The test reads the workflow text with the stdlib, so
+  it needs neither zizmor nor PyYAML.
+
 ## [1.7.2] - 2026-09-29
 
 ### Added
